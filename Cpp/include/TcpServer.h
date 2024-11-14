@@ -7,8 +7,9 @@ class TcpServer
 public:
     TcpServer();
     ~TcpServer();
+    inline int getfd() { return fd; };
     bool setListen(unsigned short &port);
-    TcpSocket *acceptConnect(sockaddr_in *addr);
+    TcpSocket *acceptConnect();
 private:
     int fd;
 };

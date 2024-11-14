@@ -3,6 +3,9 @@
         "stdlib.h": "c",
         "cstddef": "c",
         "stddef.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "ros.h": "c",
+        "threadpool.h": "c",
+        "inet.h": "c"
     }
 }

@@ -21,6 +21,7 @@ public:
     inline bool isShotdown() { return is_shotdown; }
     void addTask(std::function<void()>);
 
+    // not support for reference args, i.e. args
     template<typename F, typename... Args>
     auto addTask(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>
     {

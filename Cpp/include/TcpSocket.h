@@ -16,6 +16,7 @@ public:
     TcpSocket();
     TcpSocket(int _cfd);
     ~TcpSocket();
+    inline int getfd() { return cfd; }
     bool connectToHost(const std::string &ip, const unsigned short port);
     bool sendMsg(const std::string &msg);
     bool recvMsg(std::string &msg);

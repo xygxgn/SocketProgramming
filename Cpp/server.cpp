@@ -1,29 +1,44 @@
 #include "TcpSocket.h"
 #include "TcpServer.h"
 #include "ThreadPool.h"
+#include <mutex>
 
+std::mutex rdset_mtx;
+std::shared_ptr<ThreadPool> pool(new ThreadPool(2, 8));
 
-void working(std::shared_ptr<ThreadPool> pool, std::shared_ptr<TcpSocket> tcpsock, sockaddr_in *addr)
+void communicate(std::shared_ptr<TcpSocket> tcpsock, fd_set *rdset, int maxfd)
 {
-    char client_ip[32];
-    printf("client IP: %s, port: %d\n", 
-        inet_ntop(AF_INET, &addr->sin_addr.s_addr, client_ip, sizeof(client_ip)),
-        ntohs(addr->sin_port));
     while (!pool->isShotdown())
     {
-        std::string msg;
-        if (!tcpsock->recvMsg(msg))
+        int cfd = tcpsock->getfd();
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 0;
+        
+        rdset_mtx.lock();
+        fd_set tmpset = *rdset;
+        rdset_mtx.unlock();
+
+        int num = select(maxfd + 1, &tmpset, NULL, NULL, &timeout);
+
+        if (FD_ISSET(cfd, &tmpset))
         {
-            std::cout << "disconnect with the client..." << std::endl;
-            break;
-        }
-        else
-        {
-            std::cout << "client say: " << msg << std::endl;
-            tcpsock->sendMsg(msg);
+            std::string msg;
+            if (!tcpsock->recvMsg(msg))
+            {
+                std::cout << "disconnect with the client..." << std::endl;
+                rdset_mtx.lock();
+                FD_CLR(cfd, rdset);
+                rdset_mtx.unlock();
+                break;
+            }
+            else
+            {
+                std::cout << "client say: " << msg << std::endl;
+                tcpsock->sendMsg(msg);
+            }
         }
     }
-    delete addr;
 }
 
 
@@ -33,19 +48,34 @@ int main()
     unsigned short port = 9999; // select a port by the system if zero
     if (!server->setListen(port))
         return -1;
-    
-    std::shared_ptr<ThreadPool> pool(new ThreadPool(2, 8));
+
+    int lfd = server->getfd();
+    int maxfd = lfd;
+    fd_set rdset, tmpset;
+    FD_ZERO(&rdset);
+    FD_SET(lfd, &rdset);
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+
     pool->addTask([&](){
         while (!pool->isShotdown())
         {
-            sockaddr_in *addr = new sockaddr_in;
-            std::shared_ptr<TcpSocket> tcpsock(server->acceptConnect(addr));
-            if (tcpsock == nullptr)
+            rdset_mtx.lock();
+            tmpset = rdset;
+            rdset_mtx.unlock();
+            int num = select(maxfd + 1, &tmpset, NULL, NULL, &timeout);
+            if (!pool->isShotdown() && num > 0 && FD_ISSET(lfd, &tmpset))
             {
-                delete addr;
-                continue;
+                std::shared_ptr<TcpSocket> tcpsock(server->acceptConnect());
+                if (tcpsock == nullptr)
+                    continue;
+                int cfd = tcpsock->getfd();
+                std::lock_guard<std::mutex> locker(rdset_mtx);
+                FD_SET(cfd, &rdset);
+                maxfd = cfd > maxfd ? cfd : maxfd;
+                pool->addTask(communicate, tcpsock, &rdset, maxfd);
             }
-            pool->addTask(working, pool, tcpsock, addr);
         }
     });
 

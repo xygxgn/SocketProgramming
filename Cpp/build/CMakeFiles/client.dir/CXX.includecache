@@ -22,10 +22,6 @@ string
 memory.h
 -
 
-/home/pulsar/projects/SocketProgramming/Cpp/client.cpp
-TcpSocket.h
-/home/pulsar/projects/SocketProgramming/Cpp/TcpSocket.h
-
 /home/pulsar/projects/SocketProgramming/Cpp/src/TcpSocket.cpp
 TcpSocket.h
 /home/pulsar/projects/SocketProgramming/Cpp/src/TcpSocket.h

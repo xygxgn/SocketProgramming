@@ -6,6 +6,7 @@
 TcpServer::TcpServer()
 {
     fd = socket(AF_INET, SOCK_STREAM, 0);
+    // set the socket to non-blocking mode
     int flags = fcntl(fd, F_GETFL, 0);
     flags |= O_NONBLOCK;
     if (fcntl(fd, F_SETFL, flags) == -1) {
@@ -55,11 +56,11 @@ bool TcpServer::setListen(unsigned short &port)
 }
 
 
-TcpSocket *TcpServer::acceptConnect(sockaddr_in *addr)
+TcpSocket *TcpServer::acceptConnect()
 {
-    socklen_t addrlen = sizeof(*addr);
-
-    int cfd = accept(fd, (struct sockaddr*)addr, &addrlen);
+    sockaddr_in addr;
+    socklen_t addrlen = sizeof(addr);
+    int cfd = accept(fd, (struct sockaddr*)&addr, &addrlen);
 
     if (cfd == -1) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -69,6 +70,11 @@ TcpSocket *TcpServer::acceptConnect(sockaddr_in *addr)
             return nullptr;
         }
     }
+
+    char client_ip[32];
+    printf("client IP: %s, port: %d\n", 
+        inet_ntop(AF_INET, &addr.sin_addr.s_addr, client_ip, sizeof(client_ip)),
+        ntohs(addr.sin_port));
 
     return new TcpSocket(cfd);
 }
