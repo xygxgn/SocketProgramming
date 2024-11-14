@@ -1,0 +1,1 @@
+/usr/bin/cc   -rdynamic CMakeFiles/server.dir/src/server.c.o CMakeFiles/server.dir/src/ThreadPool.c.o  -o ../bin/server  -lpthread 

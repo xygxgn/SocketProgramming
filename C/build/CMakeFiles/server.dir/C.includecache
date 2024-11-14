@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pulsar/projects/SocketProgramming/C/src/server.c
+stdio.h
+-
+arpa/inet.h
+-
+unistd.h
+-
+pthread.h
+-
+memory.h
+-
+stdlib.h
+-
+

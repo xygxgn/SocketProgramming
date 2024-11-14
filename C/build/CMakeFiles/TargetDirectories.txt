@@ -1,0 +1,4 @@
+/home/pulsar/projects/SocketProgramming/C/build/CMakeFiles/rebuild_cache.dir
+/home/pulsar/projects/SocketProgramming/C/build/CMakeFiles/edit_cache.dir
+/home/pulsar/projects/SocketProgramming/C/build/CMakeFiles/client.dir
+/home/pulsar/projects/SocketProgramming/C/build/CMakeFiles/server.dir
